@@ -474,3 +474,150 @@ queue更适合多个异步，比如动画的连续动作
 	var ca2=back.getContext("2d");//background ane fruits
 原因：
 jQuery()返回的是jQuery对象，而jQuery对象是没有getContext方法的，需要把jQuery对象转换成Dom对象，官方文档推荐的方法如上述代码，其实jQuery对象就是类数组，用数组下标可以取得Dom对象。
+
+####让一个数的值在0-x之间变化####
+m=n%x;
+
+####关于立即执行函数
+		(function(){
+		eval("var x=10;y=20;");
+		alert(x)
+		})()
+
+####js隔离作用域
+		(function(){
+		eval("var x=10;y=20;");
+		alert(x)
+		})
+外部访问x失败undefined
+
+####node.js学习
+1.node 是单线程异步的（基于事件驱动的非阻塞I/O模型）
+理解：我们写的js代码就像是一个国王，而nodejs给国王提供了很多仆人。早上，一个仆人叫醒了国王，问他有什么需要。国王给他一份清单，上面列举了所有需要完成的任务，然后睡回笼觉去了。当国王回去睡觉之后，仆人才离开国王，拿着清单，给其它的仆人一个个布置任务。仆人们各自忙各自的去了，直到完成了自己的任务后，才回来把结果禀告给国王。国王一次只召见一个人，其它的人就在外面排着队等着。国王处理完这个结果后，可能给他布置一个新的任务，或者就直接让他走了，然后再召见下一个人。等所有的结果都处理完了，国王就继续睡觉去了。直接有新的仆人完成任务后过来找他。这就是国王的幸福生活。
+
+这段话对于理解nodejs的运行方式非常重要。
+
+在nodejs中，有一个队列（先进先出），保存着一个个待执行的任务。第一个任务就是我们写的js代码，它最先被执行（相当于国王给第一个仆人任务清单）。在它执行完以后（国王睡回笼觉去了），其它的任务才会加到队列上（相当于第一个仆人按照清单给其它仆人分配任务）。
+
+node,js 会先执行我们写的js代码里的东西，比如说遇到while的循环这些代码会顺序执行，执行完了再去执行调用的任务。
+
+process.nextTick（）setImmediate()
+process.nextTick() 中的的优先级要高于 setImmediate()
+事件循环对观察者的检查是有先后顺序的， process.nextTick() 属于idle观察者，
+setImmediate () 属于check观察者。在同一个轮循环检查中，idle观察者先于I/O观察者，I/O观察者
+先于check先于I/O观察者。
+可以将当前要执行的代码放到最后执行；
+nextTick的确是把某任务放在队列的最后（array.push)
+nodejs在执行任务时，会一次性把队列中所有任务都拿出来，依次执行
+如果全部顺利完成，则删除刚才取出的所有任务，等待下一次执行
+如果中途出错，则删除已经完成的任务和出错的任务，等待下次执行
+如果第一个就出错，则throw error
+
+		var async = require('async');
+		var pushTask = function(name) { 
+		    q.push(name, function(cb) { 
+		        console.log('running: ' + name); 
+		    }, function(err){ 
+		        console.log('finished: ' + name); 
+		    }); 
+		}
+		var wait = function(mils) { 
+		    var now = new Date; 
+		    while(new Date - now <= mils) ; 
+		}
+		var q = async.queue(function(name, task, callback) { 
+		    console.log('processing task: ' + name); 
+		    task(callback); 
+		}, 3);
+		pushTask('t1'); 
+		pushTask('t2'); 
+		pushTask('t3'); 
+		pushTask('t4');
+		wait(100); 
+		console.log('waited 100ms');
+		pushTask('t5'); 
+		pushTask('t6'); 
+		pushTask('t7'); 
+		pushTask('t8');
+		wait(10000); 
+		console.log('waited 1000ms');
+
+
+输出：
+
+		waited 100ms 
+		waited 1000ms 
+		processing task: t1 
+		running: t1 
+		processing task: t2 
+		running: t2 
+		processing task: t3 
+		running: t3 
+		processing task: t4 
+		running: t4 
+		processing task: t5 
+		running: t5 
+		processing task: t6 
+		running: t6 
+		processing task: t7 
+		running: t7
+		processing task: t8
+		running: t8
+
+
+关于同步I/O 和异步I/O;
+<img src="img/3.png">
+<img src="img/4.png">
+
+####nodejs需要大量计算cpu消耗大解决办法
+
+将大量的计算用setImmediate（）进行分解；
+
+####缓存穿透是什么
+一般的缓存系统，都是按照key去缓存查询，如果不存在对应的value，就应该去后端系统查找（比如DB）。如果key对应的value是一定不存在的，并且对该key并发请求量很大，就会对后端系统造成很大的压力。这就叫做缓存穿透。
+
+####缓存雪崩是什么
+什么是缓存雪崩？
+
+当缓存服务器重启或者大量缓存集中在某一个时间段失效，这样在失效的时候，也会给后端系统(比如DB)带来很大压力。
+
+####响应式####
+######图像随着缩放
+方法一 
+
+		img.rest{
+    		max-width: 100%;
+    		height: auto;
+		}
+说明：
+设置图像元素100%占据其父元素的空间，当父元素随状态改变时，图片就会跟着改变，auto保持图片比例
+
+方法二
+
+			@media screen and (max-width:1024px ){
+	    img.rest{
+	  width: 50px;
+	    }
+	}
+	@media screen and (min-width:1025px ) and (max-width: 1280px){
+	    img.rest{
+	        width: 200px;
+	    }
+	}
+	@media screen and (min-width:1281px ){
+	    img.rest{
+	        width: 300px;
+	    }
+	}
+	img.rest{
+	    height: auto;
+	}
+
+说明：利用css逻辑条件判断，选择不同的显示像素
+
+方式三：
+
+说明：利用js找出频幕的分辨率，然后由php判断如何显示哪一种图返回给前端的页面；
+
+
+
