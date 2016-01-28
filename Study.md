@@ -620,4 +620,18 @@ nodejs在执行任务时，会一次性把队列中所有任务都拿出来，�
 说明：利用js找出频幕的分辨率，然后由php判断如何显示哪一种图返回给前端的页面；
 
 
+####关于enctype
+为什么上传文件的表单里面要加一个属性ENCTYPE=MULTIPART/FORM-DATA？
+首先知道enctype这个属性管理的是表单的MIME编码。共有三个值可选：
+1、application/x-www-form-urlencoded
+2、multipart/form-data
+3、text/plain
+其中application/x-www-form-urlencoded是默认值，作用是设置表单传输的编码。例如我们在AJAX中见过xmlHttp.setRequestHeader("Content-Type","application/x-www-form- urlencoded");如果不写会报错的，但是在html的form表单里是可以不写enctype=application/x-www-form-urlencoded,因为默认的HTML表单就是这种传输编码类型的。
+而multipart/form-data是用来制定传输数据的特殊类型的，主要就是我们上传的非文本的内容，比如图片或是是mp3等等。
+text/plain是纯文本传输的意思，在发邮件的时候要设置这种编码类型，否则会出现接收时编码混乱的问题。网络上经常拿text/plain和 text/html做比较，其实这两个很好区分，前者用来传输纯文本文件，后者则是传递html代码的编码类型，在发送头文件时才用得上。①和③都不能用于上传文件，只有multipart/form-data才能完整的传递文件数据
 
+
+####关于数据la取，sse,websocket
+sse和websocket合称为数据推送
+
+  服务端事件发生频率越高或者需要低延迟越适合用sse或者websocket（频率低于1次一秒，二进制数据）
