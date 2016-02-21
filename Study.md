@@ -225,6 +225,7 @@ Array.prototype.push.apply(arr1,arr2)
 
 
 ####Array.prototype.slice.call
+a.call(b) //b继承a
 Array.prototype.slice.call(arguments)能将具有length属性的对象转成数组，除了IE下的节点集合（因为ie下的dom对象是以com对象的形式实现的，js对象与com对象不能进行转换）
 
 			var a={length:2,0:'first',1:'second'};  //类数组对象
@@ -700,4 +701,311 @@ CDN的全称是Content Delivery Network，即内容分发网络。CDN的通俗�
 比如head里面请求了jQuery的url，如果一个很遥远的地方来访问，就会各种慢，但是可以购买网上的cdn里服务，就可以把这些东西包括图片什么的都放进去，这样用户就会就近取得资源缓存了
 2.什么作用？
 用户体验好，而且分流负载，降低服务器负载压力
+
+
+####new 一个没有参数的构造函数
+
+(new function)
+
+#####js自执行函数
+
+方法一：(function(){alert(1);}()); 这是jslint推荐的写法，好处是，能提醒阅读代码的人，这段代码是一个整体。 
+例如，在有语法高亮匹配功能的编辑器里，光标在第一个左括号后时，最后一个右括号也会高亮，看代码的人一眼就可以看到这个整体。 
+
+方法二：(function(){alert(1);})(); function外面加括号
+
+方法三：!function(){alert(1);}(); function前面加运算符，加上“!”或“+” “~”等运算符，写起来是最简单的
+
+####防止页面刷新重复提交数据
+1。重复刷新、重复提交 
+Ways One：设置一个变量，只允许提交一次。 
+		
+		<script language="javascript"> 
+		var checkSubmitFlg = false; 
+		function checkSubmit() { 
+		if (checkSubmitFlg == true) { 
+		return false; 
+		} 
+		checkSubmitFlg = true; 
+		return true; 
+		} 
+		document.ondblclick = function docondblclick() { 
+		window.event.returnValue = false; 
+		} 
+		document.onclick = function doc { 
+		if (checkSubmitFlg) { 
+		window.event.returnValue = false; 
+		} 
+		} 
+		</script> 
+	<form action="action.php" method="post" onsubmit="getElById('submitInput').disabled = true;return true;">　
+	<img styleId="submitInput" src="images/ok_b.gif" border="0" />
+	</form>
+
+
+2。防止用户后退 
+这里的方法是千姿百态，有的是更改浏览器的历史纪录的，比如使用window.history.forward()方法;有的是“用新页面的URL替换当前的历史纪录，这样浏览历史记录中就只有一个页面，后退按钮永远不会变为可用。”比如使用javascript:location.replace(this.href); 
+
+
+F5刷新重复提交上一次的表单，这是个常见的问题。可以用hidden和session做一个同步标识，初始化hidden和session中的标识相同，在页面回传时只需要判断这2个标识是否相同，如果相同则正常执行，同时刷新hidden和session中的标识值；如果2个标识中的值不相等，说明hidden的值是上一次的表单内容，属于刷新行为
+
+####判断一个变量obj是对象还是数组，然后给另一个变量ret赋类型
+		if(b=((obj instanceof Array))||obj instanceof Object){
+			ret=b?[]:{};
+}
+
+
+####AMD CMD ES6
+ AMD（是RequireJS推广过程中对模块定义的规范化产物）:
+	 1，异步加载模块，依赖前置；提前执行；（在最开始全部加载好了，代码也分析好了，直接调用）
+     2，Define定义模块
+			define(['require','foo'],function(){return})
+     3，require加载模块（依赖前置）
+			require(['foo','bar'],function(foo，bar){})
+ CMD（SeaJS推广过程中对模块定义的规范化产物）:
+	 1，同步加载模块，依赖就近，延迟执行（是在需要用的时候才来加载）
+	 2，Define定义模块
+            define(function(require,exports,module){});
+				module上存储了当前模块上的对象
+	 3，require(./a)直接引入,或者Require.async异步引入
+
+
+
+#### js高级函数 ####
+1.级联函数：
+就是在方法的末尾返回该对象；
+eg：
+传统方法 ：
+		
+		  function Person(){
+        this.head="";
+        this.body="";
+        this.foot="";
+    }
+    Person.prototype={
+         setHead:function(head){
+             this.head=head;
+             console.log("我的脸是"+this.head);
+        },
+        setBody:function(body){
+            this.body=body;
+            console.log("我的身体是"+this.body);
+        },
+        setFoot:function(foot){
+            this.foot=foot;
+            console.log("我的脚是"+this.foot);
+        }
+
+    };
+    var cc=new Person();
+    cc.setHead("圆圆的");
+    cc.setBody("瘦瘦的");
+    cc.setFoot("直直的");
+
+
+用联级函数改变后：
+
+		 function Person(){
+        this.head="";
+        this.body="";
+        this.foot="";
+    }
+    Person.prototype={
+         setHead:function(head){
+             this.head=head;
+             console.log("我的脸是"+this.head);
+             return this;
+        },
+        setBody:function(body){
+            this.body=body;
+            console.log("我的身体是"+this.body);
+            return this;
+
+        },
+        setFoot:function(foot){
+            this.foot=foot;
+            console.log("我的脚是"+this.foot);
+            return this;
+
+        }
+
+    };
+    var cc=new Person();
+		//    cc.setHead("圆圆的");
+		//    cc.setBody("瘦瘦的");
+		//    cc.setFoot("直直的");
+    cc.setHead("圆圆的").setBody("瘦瘦的").setFoot("直直的");
+
+
+2.惰性函数
+个人理解：就是第一次判断的时候，将判断之后的结果放在新建的与这个方法同名的函数中
+如下面	
+			
+				createXHR = function () {
+                    return new XMLHttpRequest();
+                }
+
+而且记得要返回两次；
+
+			createXHR = function () {
+                    return new XMLHttpRequest();
+            }
+            return new XMLHttpRequest();
+
+第二次才是真的执行
+
+旧方法：
+
+    function createXHR(){
+	    if (typeof XMLHttpRequest != "undefined"){
+	        return new XMLHttpRequest();
+	    } else if (typeof ActiveXObject != "undefined"){
+	        if (typeof arguments.callee.activeXString != "string"){
+	            var versions = ["MSXML2.XMLHttp.6.0", "MSXML2.XMLHttp.3.0",
+	                            "MSXML2.XMLHttp"];
+	    
+	            for (var i=0,len=versions.length; i < len; i++){
+	                try {
+	                    var xhr = new ActiveXObject(versions[i]);
+	                    arguments.callee.activeXString = versions[i];
+	                    return xhr;
+	                } catch (ex){
+	                    //skip
+	                }
+	            }
+	        }
+	    
+	        return new ActiveXObject(arguments.callee.activeXString);
+	    } else {
+	        throw new Error("No XHR object available.");
+	    }
+	}
+
+新方法：
+
+	function createXHR() {
+            if (typeof XMLHttpRequest != "undefined") {
+                createXHR = function () {
+                    return new XMLHttpRequest();
+                }
+                return new XMLHttpRequest();
+            } else if (typeof ActiveXObject != "undefined") {
+                var curxhr;
+                var versions = ["MSXML2.XMLHttp.6.0", "MSXML2.XMLHttp.3.0",
+                    "MSXML2.XMLHttp"];
+
+                for (var i = 0, len = versions.length; i < len; i++) {
+                    try {
+                        var xhr = new ActiveXObject(versions[i]);
+                        curxhr = versions[i];
+                        createXHR = function () {
+                            return new ActiveXObject(curxhr);
+                        }
+                        return xhr;
+                    } catch (ex) {
+                        //skip
+                    }
+                }
+            } else {
+                throw new Error("No XHR object available.");
+            }
+        }
+
+
+3.柯里化函数
+
+通用版：
+		function currying(fn) {
+            var slice = Array.prototype.slice,
+            __args = slice.call(arguments, 1);//将类数组对象化成数组
+            return function () {
+                var __inargs = slice.call(arguments);
+                return fn.apply(null, __args.concat(__inargs));
+            };
+        }
+
+
+柯里化函数有3个特点
+- 延迟执行  比如说要累加计算之类
+
+			var curryWeight = function(fn) {
+		    var _fishWeight = [];
+		    return function() {
+		        if (arguments.length === 0) {
+		            return fn.apply(null, _fishWeight);
+		        } else {
+		            _fishWeight = _fishWeight.concat([].slice.call(arguments));
+		        }
+		    }
+		};
+		var fishWeight = 0;
+		var addWeight = curryWeight(function() {
+		    var i=0; len = arguments.length;
+		    for (i; i<len; i+=1) {
+		        fishWeight += arguments[i];
+		    }
+		});
+		
+		addWeight(2.3);
+		addWeight(6.5);
+		addWeight(1.2);
+		addWeight(2.5);
+		addWeight();    //  这里才计算
+		
+		console.log(fishWeight);    // 12.5
+
+延迟执行：
+
+		var obj = {
+    		"name": "currying" 
+		},
+		fun = function() {
+    		console.log(this.name);
+		}.bind(obj);		//已经绑定了
+
+		fun(); // currying 这里才执行
+    
+bind的实现：
+	if (!function() {}.bind) {
+    		Function.prototype.bind = function(context) {
+    	   		 var self = this，
+           	 	 args = Array.prototype.slice.call(arguments);
+       			 return function() {
+        	    	return self.apply(context, args.slice(1));    
+       	 	 	 }
+    		};
+	}
+
+
+- 使参数合法化
+- 提前返回
+
+#### 构造函数与 普通函数 区别
+构造函数：
+1.默认return new出来的对象；当显式return时，分两种情况：
+  - return的是五种简单数据类型：String，Number，Boolean，Null，Undefined。
+这种情况下，忽视return值，依然返回this对象。
+  - eturn的是Object
+这种情况下，不再返回this对象，而是返回return语句的返回值。
+2.this（指新的对象）；
+3.首字母大写
+普通函数；
+1.需要指定return返回；
+2.this（windows全局）；
+3.驼峰式命名，首字母小写
+
+
+####js按引用传递 按值传递
+ 按引用传递：object 和 array
+ 按值传递：string Boolean int···········
+
+
+
+
+
+
+
+
+
+
 
